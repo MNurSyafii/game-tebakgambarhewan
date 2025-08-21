@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animal Guessing Adventure</title>
+    <style>
+        /* ========== GOOGLE FONTS IMPORT ========== */
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Comic+Neue:wght@400;700&display=swap');
+        
+        /* ========== GLOBAL STYLES ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Fredoka', cursive;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: all 0.5s ease;
+        }
+        
+        /* ========== BACKGROUND THEMES ========== */
+        .bg-jungle {
+            background: linear-gradient(45deg, #2d5016, #4a7c59, #6ba368);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease-in-out infinite;
+        }
+        
+        .bg-savanna {
+            background: linear-gradient(45deg, #f4a460, #daa520, #cd853f);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease-in-out infinite;
+        }
+        
+        .bg-ocean {
+            background: linear-gradient(45deg, #1e3a8a, #3b82f6, #06b6d4);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease-in-out infinite;
+        }
+        
+        .bg-menu {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #f9ca24);
+            background-size: 400% 400%;
+            animation: gradientShift 10s ease-in-out infinite;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        /* ========== MAIN CONTAINER ========== */
+        .game-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* ========== SCREENS ========== */
+        .screen {
+            display: none;
+            width: 100%;
+            text-align: center;
+            color: white;
+        }
+        
+        .screen.active {
+            display: block;
+            animation: fadeInUp 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* ========== MENU SCREEN ========== */
+        .menu-title {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+            color: #fff;
+        }
+        
+        .menu-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+        
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        /* ========== BUTTONS ========== */
+        .btn {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            font-family: 'Fredoka', cursive;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            min-width: 250px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(-2px) scale(1.02);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #f9ca24, #f39c12);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+        
+        /* ========== GAME SCREEN ========== */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 30px;
+            background: rgba(255,255,255,0.1);
+            padding: 15px 25px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .score-info {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .level-indicator {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 15px;
+            font-weight: 600;
+        }
+        
+        .progress-container {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 30px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            width: 0%;
+            transition: width 0.8s ease;
+            border-radius: 10px;
+        }
+        
+        /* ========== ANIMAL DISPLAY ========== */
+        .animal-container {
+            background: rgba(255,255,255,0.95);
+            border-radius: 25px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .animal-image {
+            width: 300px;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            transition: all 0.5s ease;
+        }
+        
+        .animal-image.bounce {
+            animation: bounceAnimation 0.8s ease;
+        }
+        
+        .animal-image.shake {
+            animation: shakeAnimation 0.8s ease;
+        }
+        
+        @keyframes bounceAnimation {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+        
+        @keyframes shakeAnimation {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        
+        /* ========== ANSWER CHOICES ========== */
+        .choices-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            max-width: 600px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+        
+        .choice-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 20px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            font-family: 'Fredoka', cursive;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        
+        .choice-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.3);
+        }
+        
+        .choice-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .choice-btn.correct {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            animation: pulseGreen 0.8s ease;
+        }
+        
+        .choice-btn.incorrect {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            animation: shakeRed 0.8s ease;
+        }
+        
+        @keyframes pulseGreen {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        @keyframes shakeRed {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        /* ========== FEEDBACK SECTION ========== */
+        .feedback-container {
+            min-height: 120px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            max-width: 700px;
+            width: 100%;
+            color: #333;
+        }
+        
+        .narrator-text {
+            font-size: 1.3rem;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+        
+        .fun-fact {
+            background: linear-gradient(45deg, #f9ca24, #f39c12);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-top: 15px;
+            font-weight: 600;
+        }
+        
+        /* ========== RESULTS SCREEN ========== */
+        .results-container {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        .trophy {
+            font-size: 6rem;
+            margin-bottom: 20px;
+            animation: trophyBounce 2s ease-in-out infinite;
+        }
+        
+        @keyframes trophyBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .final-score {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .motivation-message {
+            font-size: 1.4rem;
+            margin-bottom: 30px;
+            line-height: 1.4;
+        }
+        
+        /* ========== LEARN MODE ========== */
+        .animals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            max-width: 1000px;
+            width: 100%;
+            margin-top: 30px;
+        }
+        
+        .animal-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            color: #333;
+        }
+        
+        .animal-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        }
+        
+        .animal-card img {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .animal-card h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .animal-card p {
+            font-size: 1rem;
+            line-height: 1.4;
+            color: #555;
+        }
+        
+        /* ========== RESPONSIVE DESIGN ========== */
+        @media (max-width: 768px) {
+            .menu-title {
+                font-size: 2.5rem;
+            }
+            
+            .game-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .choices-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .animal-image {
+                width: 250px;
+                height: 250px;
+            }
+            
+            .animals-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn {
+                min-width: 200px;
+                font-size: 1.1rem;
+            }
+        }
+        
+        /* ========== LOADING ANIMATION ========== */
+        .loading {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-menu">
+    <!-- ========== MAIN GAME CONTAINER ========== -->
+    <div class="game-container">
+        
+        <!-- ========== MENU SCREEN ========== -->
+        <div id="menuScreen" class="screen active">
+            <h1 class="menu-title">🦁 Animal Guessing Adventure 🌟</h1>
+            <p class="menu-subtitle">Explore the wild and learn about amazing animals!</p>
+            <div class="menu-buttons">
+                <button class="btn btn-primary" onclick="startGame()">🎮 Start Adventure</button>
+                <button class="btn btn-secondary" onclick="showLearnMode()">📚 Learn Mode</button>
+                <button class="btn btn-danger" onclick="showInstructions()">❓ How to Play</button>
+            </div>
+        </div>
+        
+        <!-- ========== INSTRUCTIONS SCREEN ========== -->
+        <div id="instructionsScreen" class="screen">
+            <div class="results-container">
+                <h2 style="font-size: 2.5rem; margin-bottom: 30px;">🎯 How to Play</h2>
+                <div style="text-align: left; font-size: 1.2rem; line-height: 1.6;">
+                    <p><strong>🎪 Your Mission:</strong> You're an explorer traveling through different environments!</p>
+                    <p><strong>🎮 Gameplay:</strong> Look at the animal picture and choose the correct name from 4 options.</p>
+                    <p><strong>🌟 Levels:</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li>🌱 Level 1: Common animals (jungle)</li>
+                        <li>🦁 Level 2: Wild animals (savanna)</li>
+                        <li>🐙 Level 3: Rare animals (ocean)</li>
+                    </ul>
+                    <p><strong>🏆 Goal:</strong> Answer 10 questions and become an Animal Expert!</p>
+                </div>
+                <button class="btn btn-primary" onclick="showMenu()" style="margin-top: 30px;">🔙 Back to Menu</button>
+            </div>
+        </div>
+        
+        <!-- ========== GAME SCREEN ========== -->
+        <div id="gameScreen" class="screen">
+            <!-- Game Header -->
+            <div class="game-header">
+                <div class="score-info">Score: <span id="scoreDisplay">0</span>/10</div>
+                <div class="level-indicator" id="levelIndicator">Level 1: Jungle</div>
+                <div class="score-info">Question: <span id="questionDisplay">1</span>/10</div>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+            
+            <!-- Animal Display -->
+            <div class="animal-container">
+                <img id="animalImage" class="animal-image" src="" alt="Guess this animal!" />
+            </div>
+            
+            <!-- Answer Choices -->
+            <div class="choices-container" id="choicesContainer">
+                <!-- Choices will be populated by JavaScript -->
+            </div>
+            
+            <!-- Feedback Section -->
+            <div class="feedback-container">
+                <div class="narrator-text" id="narratorText">
+                    Welcome, brave explorer! Look at this amazing animal and choose the correct name. Good luck! 🌟
+                </div>
+                <div class="fun-fact" id="funFact" style="display: none;"></div>
+            </div>
+            
+            <!-- Next Question Button -->
+            <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" style="display: none;">
+                ➡️ Continue Adventure
+            </button>
+        </div>
+        
+        <!-- ========== RESULTS SCREEN ========== -->
+        <div id="resultsScreen" class="screen">
+            <div class="results-container">
+                <div class="trophy" id="trophyIcon">🏆</div>
+                <div class="final-score" id="finalScoreDisplay">8/10</div>
+                <div class="motivation-message" id="motivationMessage"></div>
+                <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="startGame()">🔄 Play Again</button>
+                    <button class="btn btn-secondary" onclick="showMenu()">🏠 Main Menu</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ========== LEARN MODE SCREEN ========== -->
+        <div id="learnScreen" class="screen">
+            <h2 style="font-size: 2.5rem; margin-bottom: 20px;">📚 Animal Encyclopedia</h2>
+            <p style="font-size: 1.3rem; margin-bottom: 30px;">Discover amazing facts about these wonderful animals!</p>
+            <button class="btn btn-primary" onclick="showMenu()" style="margin-bottom: 30px;">🔙 Back to Menu</button>
+            
+            <div class="animals-grid" id="animalsGrid">
+                <!-- Animal cards will be populated by JavaScript -->
+            </div>
+        </div>
+        
+    </div>
+
+    <script>
+        // ========== GAME CONFIGURATION ==========
+        
+        /**
+         * Animal database organized by difficulty levels
+         * Each animal has: name, image URL, fun fact, and level
+         */
+        const animalDatabase = {
+            1: [ // Level 1: Common Animals (Jungle Theme)
+                {
+                    name: "Cat",
+                    image: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400&h=400&fit=crop",
+                    fact: "Cats can rotate their ears 180 degrees and have a special scent organ in their mouth!"
+                },
+                {
+                    name: "Dog",
+                    image: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=400&fit=crop",
+                    fact: "Dogs have an amazing sense of smell that's 10,000 times stronger than humans!"
+                },
+                {
+                    name: "Rabbit",
+                    image: "https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?w=400&h=400&fit=crop",
+                    fact: "Rabbits can jump nearly 3 feet high and their teeth never stop growing!"
+                },
+                {
+                    name: "Chicken",
+                    image: "https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=400&h=400&fit=crop",
+                    fact: "Chickens can remember over 100 different faces and are smarter than toddlers!"
+                },
+                {
+                    name: "Horse",
+                    image: "https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=400&h=400&fit=crop",
+                    fact: "Horses can sleep both lying down and standing up, and they have excellent memories!"
+                },
+                {
+                    name: "Cow",
+                    image: "https://images.unsplash.com/photo-1546026423-cc4642628d2b?w=400&h=400&fit=crop",
+                    fact: "Cows have best friends and get stressed when separated from them!"
+                }
+            ],
+            2: [ // Level 2: Wild Animals (Savanna Theme)
+                {
+                    name: "Lion",
+                    image: "https://images.unsplash.com/photo-1614027164847-1b28cfe1df60?w=400&h=400&fit=crop",
+                    fact: "A lion's roar can be heard from 5 miles away! Female lions do most of the hunting."
+                },
+                {
+                    name: "Elephant",
+                    image: "https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400&h=400&fit=crop",
+                    fact: "Elephants can recognize themselves in mirrors and have incredible memories!"
+                },
+                {
+                    name: "Giraffe",
+                    image: "https://images.unsplash.com/photo-1547721064-da6cfb341d50?w=400&h=400&fit=crop",
+                    fact: "Giraffes have the same number of neck bones as humans - just 7, but much longer!"
+                },
+                {
+                    name: "Zebra",
+                    image: "https://images.unsplash.com/photo-1551969014-7d2c4cddf0b6?w=400&h=400&fit=crop",
+                    fact: "Every zebra has a unique stripe pattern, like human fingerprints!"
+                },
+                {
+                    name: "Panda",
+                    image: "https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=400&h=400&fit=crop",
+                    fact: "Giant pandas can only digest 30% of the bamboo they eat and spend 12 hours a day eating!"
+                },
+                {
+                    name: "Tiger",
+                    image: "https://images.unsplash.com/photo-1561731216-c3a4d99437d5?w=400&h=400&fit=crop",
+                    fact: "Tigers have striped skin under their fur and are excellent swimmers!"
+                }
+            ],
+            3: [ // Level 3: Rare/Unique Animals (Ocean Theme)
+                {
+                    name: "Axolotl",
+                    image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=400&fit=crop",
+                    fact: "Axolotls can regrow entire limbs, organs, and even parts of their brain!"
+                },
+                {
+                    name: "Platypus",
+                    image: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=400&fit=crop",
+                    fact: "The platypus is one of only two mammals that lay eggs and has electroreception!"
+                },
+                {
+                    name: "Pangolin",
+                    image: "https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400&h=400&fit=crop",
+                    fact: "Pangolins are the only mammals with scales and can roll into a perfect ball for protection!"
+                },
+                {
+                    name: "Quokka",
+                    image: "https://images.unsplash.com/photo-1459262838948-3e2de6c1ec80?w=400&h=400&fit=crop",
+                    fact: "Quokkas are called the 'happiest animals' because they always look like they're smiling!"
+                },
+                {
+                    name: "Narwhal",
+                    image: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400&h=400&fit=crop",
+                    fact: "Narwhals have a long tusk that's actually a tooth and are called 'unicorns of the sea'!"
+                },
+                {
+                    name: "Capybara",
+                    image: "https://images.unsplash.com/photo-1563281577-a7be47e20db9?w=400&h=400&fit=crop",
+                    fact: "Capybaras are the world's largest rodents and are so chill that other animals love to hang out with them!"
+                }
+            ]
+        };
+        
+        // ========== GAME STATE VARIABLES ==========
+        let currentQuestion = 1;
+        let score = 0;
+        let currentLevel = 1;
+        let currentAnimal = null;
+        let gameActive = false;
+        let usedAnimals = [];
+        
+        // ========== DOM ELEMENTS ==========
+        const elements = {
+            // Screens
+            menuScreen: document.getElementById('menuScreen'),
+            instructionsScreen: document.getElementById('instructionsScreen'),
+            gameScreen: document.getElementById('gameScreen'),
+            resultsScreen: document.getElementById('resultsScreen'),
+            learnScreen: document.getElementById('learnScreen'),
+            
+            // Game UI
+            scoreDisplay: document.getElementById('scoreDisplay'),
+            questionDisplay: document.getElementById('questionDisplay'),
+            levelIndicator: document.getElementById('levelIndicator'),
+            progressFill: document.getElementById('progressFill'),
+            animalImage: document.getElementById('animalImage'),
+            choicesContainer: document.getElementById('choicesContainer'),
+            narratorText: document.getElementById('narratorText'),
+            funFact: document.getElementById('funFact'),
+            nextBtn: document.getElementById('nextBtn'),
+            
+            // Results
+            trophyIcon: document.getElementById('trophyIcon'),
+            finalScoreDisplay: document.getElementById('finalScoreDisplay'),
+            motivationMessage: document.getElementById('motivationMessage'),
+            
+            // Learn Mode
+            animalsGrid: document.getElementById('animalsGrid')
+        };
+        
+        // ========== SOUND EFFECTS SYSTEM ==========
+        /**
+         * Creates sound effects using Web Audio API
+         * @param {string} type - Type of sound ('correct', 'incorrect', 'cheer', 'oops')
+         */
+        function playSound(type) {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Configure sound based on type
+                switch(type) {
+                    case 'correct':
+                    case 'cheer':
+                        // Happy ascending notes
+                        oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+                        oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
+                        oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2); // G5
+                        break;
+                    case 'incorrect':
+                    case 'oops':
+                        // Sad descending notes
+                        oscillator.frequency.setValueAtTime(400, audioContext.currentTime); // G4
+                        oscillator.frequency.setValueAtTime(350, audioContext.currentTime + 0.2); // F4
+                        oscillator.frequency.setValueAtTime(300, audioContext.currentTime + 0.4); // D4
+                        break;
+                }
+                
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch (error) {
+                console.log('Audio not available');
+            }
+        }
+        
+        // ========== SCREEN MANAGEMENT ==========
+        /**
+         * Shows a specific screen and hides others
+         * @param {string} screenId - ID of the screen to show
+         */
+        function showScreen(screenId) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // Show target screen
+            document.getElementById(screenId).classList.add('active');
+            
+            // Update background based on current level/screen
+            updateBackground();
+        }
+        
+        /**
+         * Updates the background theme based on current game state
+         */
+        function updateBackground() {
+            const body = document.body;
+            body.className = ''; // Clear existing classes
+            
+            if (elements.gameScreen.classList.contains('active')) {
+                // Game screen - change based on level
+                switch(currentLevel) {
+                    case 1:
+                        body.classList.add('bg-jungle');
+                        break;
+                    case 2:
+                        body.classList.add('bg-savanna');
+                        break;
+                    case 3:
+                        body.classList.add('bg-ocean');
+                        break;
+                }
+            } else {
+                // Other screens use menu background
+                body.classList.add('bg-menu');
+            }
+        }
+        
+        // ========== MENU FUNCTIONS ==========
+        /**
+         * Shows the main menu
+         */
+        function showMenu() {
+            showScreen('menuScreen');
+            resetGame();
+        }
+        
+        /**
+         * Shows the instructions screen
+         */
+        function showInstructions() {
+            showScreen('instructionsScreen');
+        }
+        
+        /**
+         * Shows the learn mode screen and populates it with all animals
+         */
+        function showLearnMode() {
+            showScreen('learnScreen');
+            populateLearnMode();
+        }
+        
+        /**
+         * Populates the learn mode with all animals from the database
+         */
+        function populateLearnMode() {
+            const grid = elements.animalsGrid;
+            grid.innerHTML = '';
+            
+            // Combine all animals from all levels
+            const allAnimals = [
+                ...animalDatabase[1],
+                ...animalDatabase[2],
+                ...animalDatabase[3]
+            ];
+            
+            allAnimals.forEach(animal => {
+                const card = document.createElement('div');
+                card.className = 'animal-card';
+                card.innerHTML = `
+                    <img src="${animal.image}" alt="${animal.name}" loading="lazy" />
+                    <h3>${animal.name}</h3>
+                    <p>${animal.fact}</p>
+                `;
+                grid.appendChild(card);
+            });
+        }
+        
+        // ========== GAME INITIALIZATION ==========
+        /**
+         * Starts a new game
+         */
+        function startGame() {
+            resetGame();
+            showScreen('gameScreen');
+            loadQuestion();
+        }
+        
+        /**
+         * Resets all game variables to initial state
+         */
+        function resetGame() {
+            currentQuestion = 1;
+            score = 0;
+            currentLevel = 1;
+            currentAnimal = null;
+            gameActive = false;
+            usedAnimals = [];
+            
+            // Reset UI elements
+            updateGameInfo();
+            elements.nextBtn.style.display = 'none';
+            elements.funFact.style.display = 'none';
+            elements.narratorText.textContent = "Welcome, brave explorer! Look at this amazing animal and choose the correct name. Good luck! 🌟";
+        }
+        
+        /**
+         * Updates the game information display (score, level, progress)
+         */
+        function updateGameInfo() {
+            elements.scoreDisplay.textContent = score;
+            elements.questionDisplay.textContent = currentQuestion;
+            elements.progressFill.style.width = ((currentQuestion - 1) / 10) * 100 + '%';
+            
+            // Update level indicator
+            const levelNames = {
+                1: 'Level 1: Jungle 🌿',
+                2: 'Level 2: Savanna 🦁',
+                3: 'Level 3: Ocean 🌊'
+            };
+            elements.levelIndicator.textContent = levelNames[currentLevel];
+        }
+        
+        // ========== QUESTION LOADING SYSTEM ==========
+        /**
+         * Loads a new question based on current game state
+         */
+        function loadQuestion() {
+            // Determine current level based on question number
+            if (currentQuestion <= 4) currentLevel = 1;
+            else if (currentQuestion <= 7) currentLevel = 2;
+            else currentLevel = 3;
+            
+            // Update UI and background
+            updateGameInfo();
+            updateBackground();
+            
+            // Get random animal for current level
+            currentAnimal = getRandomAnimal();
+            
+            // Load animal image
+            elements.animalImage.src = currentAnimal.image;
+            elements.animalImage.className = 'animal-image'; // Reset animations
+            
+            // Generate answer choices
+            generateChoices();
+            
+            // Reset feedback
+            elements.narratorText.textContent = `Question ${currentQuestion}: What animal is this? Choose carefully, explorer! 🔍`;
+            elements.funFact.style.display = 'none';
+            elements.nextBtn.style.display = 'none';
+            
+            gameActive = true;
+        }
+        
+        /**
+         * Gets a random animal from the current level that hasn't been used yet
+         * @returns {Object} Animal object with name, image, and fact
+         */
+        function getRandomAnimal() {
+            const levelAnimals = animalDatabase[currentLevel];
+            const availableAnimals = levelAnimals.filter(animal => 
+                !usedAnimals.includes(`${currentLevel}-${animal.name}`)
+            );
+            
+            // If no unused animals, reset for this level
+            if (availableAnimals.length === 0) {
+                usedAnimals = usedAnimals.filter(used => !used.startsWith(`${currentLevel}-`));
+                return levelAnimals[Math.floor(Math.random() * levelAnimals.length)];
+            }
+            
+            const selectedAnimal = availableAnimals[Math.floor(Math.random() * availableAnimals.length)];
+            usedAnimals.push(`${currentLevel}-${selectedAnimal.name}`);
+            
+            return selectedAnimal;
+        }
+        
+        /**
+         * Generates 4 multiple choice answers including the correct one
+         */
+        function generateChoices() {
+            const correctAnswer = currentAnimal.name;
+            const allAnimals = [
+                ...animalDatabase[1],
+                ...animalDatabase[2],
+                ...animalDatabase[3]
+            ];
+            
+            // Get 3 wrong answers
+            const wrongAnswers = allAnimals
+                .filter(animal => animal.name !== correctAnswer)
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 3)
+                .map(animal => animal.name);
+            
+            // Combine and shuffle all answers
+            const allAnswers = [correctAnswer, ...wrongAnswers].sort(() => Math.random() - 0.5);
+            
+            // Create choice buttons
+            elements.choicesContainer.innerHTML = '';
+            allAnswers.forEach((answer, index) => {
+                const button = document.createElement('button');
+                button.className = 'choice-btn';
+                button.textContent = answer;
+                button.onclick = () => checkAnswer(answer, button);
+                elements.choicesContainer.appendChild(button);
+            });
+        }
+        
+        // ========== ANSWER CHECKING SYSTEM ==========
+        /**
+         * Checks if the selected answer is correct
+         * @param {string} selectedAnswer - The answer chosen by the player
+         * @param {HTMLElement} buttonElement - The button that was clicked
+         */
+        function checkAnswer(selectedAnswer, buttonElement) {
+            if (!gameActive) return;
+            
+            gameActive = false;
+            const isCorrect = selectedAnswer === currentAnimal.name;
+            
+            // Disable all choice buttons
+            document.querySelectorAll('.choice-btn').forEach(btn => {
+                btn.disabled = true;
+            });
+            
+            if (isCorrect) {
+                handleCorrectAnswer(buttonElement);
+            } else {
+                handleIncorrectAnswer(buttonElement);
+            }
+            
+            // Show next question button after feedback
+            setTimeout(() => {
+                if (currentQuestion < 10) {
+                    elements.nextBtn.style.display = 'block';
+                } else {
+                    setTimeout(() => showResults(), 2000);
+                }
+            }, 3000);
+        }
+        
+        /**
+         * Handles correct answer feedback and animations
+         * @param {HTMLElement} buttonElement - The correct button clicked
+         */
+        function handleCorrectAnswer(buttonElement) {
+            score++;
+            elements.scoreDisplay.textContent = score;
+            
+            // Button animation
+            buttonElement.classList.add('correct');
+            
+            // Animal animation
+            elements.animalImage.classList.add('bounce');
+            
+            // Sound effect
+            playSound('cheer');
+            
+            // Narrator feedback
+            const celebrations = [
+                "🎉 Fantastic! You're becoming a real animal expert!",
+                "🌟 Excellent work, explorer! That's absolutely right!",
+                "🎊 Amazing! You know your animals so well!",
+                "✨ Perfect! You're on fire, animal detective!",
+                "🎯 Incredible! Your animal knowledge is impressive!"
+            ];
+            
+            const randomCelebration = celebrations[Math.floor(Math.random() * celebrations.length)];
+            elements.narratorText.textContent = randomCelebration;
+            
+            // Show fun fact
+            setTimeout(() => {
+                elements.funFact.textContent = `🧠 Fun Fact: ${currentAnimal.fact}`;
+                elements.funFact.style.display = 'block';
+            }, 1000);
+        }
+        
+        /**
+         * Handles incorrect answer feedback and animations
+         * @param {HTMLElement} buttonElement - The incorrect button clicked
+         */
+        function handleIncorrectAnswer(buttonElement) {
+            // Button animation
+            buttonElement.classList.add('incorrect');
+            
+            // Highlight correct answer
+            setTimeout(() => {
+                document.querySelectorAll('.choice-btn').forEach(btn => {
+                    if (btn.textContent === currentAnimal.name) {
+                        btn.classList.add('correct');
+                    }
+                });
+            }, 500);
+            
+            // Animal animation
+            elements.animalImage.classList.add('shake');
+            
+            // Sound effect
+            playSound('oops');
+            
+            // Narrator feedback
+            const encouragements = [
+                "🤔 Oops! Don't worry, learning is part of the adventure!",
+                "💪 Not quite right, but you're doing great! Keep exploring!",
+                "🌟 Close guess! Every mistake helps us learn something new!",
+                "🎯 That's okay, explorer! Even experts make mistakes!",
+                "💡 Good try! Let's discover the right answer together!"
+            ];
+            
+            const randomEncouragement = encouragements[Math.floor(Math.random() * encouragements.length)];
+            elements.narratorText.textContent = `${randomEncouragement} The correct answer is: ${currentAnimal.name}`;
+            
+            // Show fun fact
+            setTimeout(() => {
+                elements.funFact.textContent = `🧠 Fun Fact: ${currentAnimal.fact}`;
+                elements.funFact.style.display = 'block';
+            }, 1500);
+        }
+        
+        // ========== GAME PROGRESSION ==========
+        /**
+         * Moves to the next question
+         */
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion <= 10) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+        
+        /**
+         * Shows the final results screen
+         */
+        function showResults() {
+            showScreen('resultsScreen');
+            
+            elements.finalScoreDisplay.textContent = `${score}/10`;
+            
+            // Determine trophy and message based on score
+            let trophy, message;
+            
+            if (score === 10) {
+                trophy = '🏆';
+                message = "🌟 PERFECT SCORE! 🌟<br>You're officially an Animal Expert! Your knowledge of the animal kingdom is absolutely incredible!";
+                // Create celebration effect
+                setTimeout(createCelebration, 500);
+            } else if (score >= 8) {
+                trophy = '🥇';
+                message = "🎉 OUTSTANDING! 🎉<br>You're almost a perfect animal expert! Your adventure through the wild was amazing!";
+            } else if (score >= 6) {
+                trophy = '🥈';
+                message = "👏 GREAT JOB! 👏<br>You did really well, explorer! You know so much about animals already!";
+            } else if (score >= 4) {
+                trophy = '🥉';
+                message = "😊 GOOD EFFORT! 😊<br>You're learning fast! Keep exploring and you'll become an animal expert soon!";
+            } else {
+                trophy = '🌟';
+                message = "💪 KEEP EXPLORING! 💪<br>Every expert started as a beginner! Try again and discover more amazing animals!";
+            }
+            
+            elements.trophyIcon.textContent = trophy;
+            elements.motivationMessage.innerHTML = message;
+        }
+        
+        /**
+         * Creates a celebration animation for perfect scores
+         */
+        function createCelebration() {
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b', '#6c5ce7'];
+            
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.style.position = 'fixed';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.top = '-10px';
+                    confetti.style.width = '10px';
+                    confetti.style.height = '10px';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.borderRadius = '50%';
+                    confetti.style.pointerEvents = 'none';
+                    confetti.style.animation = 'confetti-fall 3s linear forwards';
+                    
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 100);
+            }
+        }
+        
+        // ========== INITIALIZATION ==========
+        /**
+         * Initialize the game when the page loads
+         */
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set initial screen
+            showScreen('menuScreen');
+            
+            // Add CSS animation for confetti
+            if (!document.querySelector('#confetti-style')) {
+                const style = document.createElement('style');
+                style.id = 'confetti-style';
+                style.textContent = `
+                    @keyframes confetti-fall {
+                        0% {
+                            transform: translateY(-10vh) rotate(0deg);
+                            opacity: 1;
+                        }
+                        100% {
+                            transform: translateY(100vh) rotate(720deg);
+                            opacity: 0;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        });
+        
+        // ========== ERROR HANDLING ==========
+        /**
+         * Handle image loading errors
+         */
+        elements.animalImage.onerror = function() {
+            this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjZjNmNGY2Ii8+CjxwYXRoIGQ9Ik0xNTAgNzVMMTc1IDEyNUgxMjVMMTUwIDc1WiIgZmlsbD0iIzZiNzI4MCIvPgo8Y2lyY2xlIGN4PSIxMzAiIGN5PSIxNDAiIHI9IjUiIGZpbGw9IiM2YjcyODAiLz4KPGNpcmNsZSBjeD0iMTcwIiBjeT0iMTQwIiByPSI1IiBmaWxsPSIjNmI3MjgwIi8+CjxwYXRoIGQ9Ik0xMjAgMTgwUTE1MCAyMDAgMTgwIDE4MCIgc3Ryb2tlPSIjNmI3MjgwIiBzdHJva2Utd2lkdGg9IjMiIGZpbGw9Im5vbmUiLz4KPHRleHQgeD0iMTUwIiB5PSIyNDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM2YjcyODAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNiI+QW5pbWFsIEltYWdlPC90ZXh0Pgo8L3N2Zz4K';
+            console.log('Failed to load image, showing placeholder');
+        };
+        
+        /**
+         * Handle any JavaScript errors gracefully
+         */
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            console.error('Game error:', msg, 'at', lineNo + ':' + columnNo);
+            return false;
+        };
+        
+        // ========== ACCESSIBILITY FEATURES ==========
+        /**
+         * Add keyboard navigation support
+         */
+        document.addEventListener('keydown', function(e) {
+            if (gameActive) {
+                // Allow number keys 1-4 to select answers
+                const keyNum = parseInt(e.key);
+                if (keyNum >= 1 && keyNum <= 4) {
+                    const buttons = document.querySelectorAll('.choice-btn');
+                    if (buttons[keyNum - 1] && !buttons[keyNum - 1].disabled) {
+                        buttons[keyNum - 1].click();
+                    }
+                }
+            }
+            
+            // Enter key for next question
+            if (e.key === 'Enter' && elements.nextBtn.style.display === 'block') {
+                nextQuestion();
+            }
+        });
+        
+        // ========== PERFORMANCE OPTIMIZATION ==========
+        /**
+         * Preload images for better performance
+         */
+        function preloadImages() {
+            const allAnimals = [
+                ...animalDatabase[1],
+                ...animalDatabase[2],
+                ...animalDatabase[3]
+            ];
+            
+            allAnimals.forEach(animal => {
+                const img = new Image();
+                img.src = animal.image;
+            });
+        }
+        
+        // Start preloading images after page load
+        window.addEventListener('load', preloadImages);
+    </script>
+</body>
+</html>
